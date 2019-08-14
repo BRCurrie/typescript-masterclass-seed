@@ -1,49 +1,41 @@
 // `npm start` or `yarn start` to see in browser.
 // `tsc` then `node dist/app.js` to see in terminal.
 
-// `this` keyword changes based on how we invoke the function.
-
-// Creating an object literal.
-const myObject = {
+class MyClass {
   myMethod() {
-    console.log('Object literal', this);
+    const foo = 123;
+    const that = this;
+    // This keyword references back to the class.
+    console.log('Initial Function', this);
+    // Added after first instance call.
+    // When we create a new function, we create a new scope.
+    // The foo is a new scope but is also part of the scope chain.
+    // This is part of the lexical scope.
+    setTimeout(function() {
+      console.log('foo', foo);
+      // Each new function gets its own this keyword.
+      // This keyword would reference to the window.
+      console.log('First SetTimeout', this);
+    }, 0);
+    // With this function we setup that = this above. The scope of this refers
+    // back to the MyClass object. This is an old way of doing this.
+    setTimeout(function() {
+      console.log('That', that);
+    }, 0);
+    // Arrow functions do not bind a this value.
+    // const that = this is no longer necessary because the arrow function never changed
+    // the scope.
+    setTimeout(() => {
+      console.log('Arrow', this);
+    }, 0);
   }
-};
-
-// Invoke object literal example.
-// Because myObject is invoking the myMethod, `this` refers to the myObject.
-myObject.myMethod();
-
-// Function demonstrating this context.
-// In this case it is the window object in the browser.
-function myFunction(...text: string[]) {
-  console.log('Function', this);
+  // This method creates separate scope from foo in the other method.
+  // They do not interfere with each other.
+  //   We do not call this function at any point in this demonstration.
+  foo() {
+    const foo = 456;
+  }
 }
 
-// Invoke function.
-// The window is invoking this function.
-myFunction('ABC', 'DEF');
-//   Window is invoking the function, however the call is changing the value to whatever
-//  we supply as the first argument.
-myFunction.call(myObject, 'abc', 'def');
-// We are supplying an array instead of the argument.
-myFunction.call([]);
-
-// .call and .apply invoke the function.
-// .call is comma separated. .apply is passed an array.
-// These are used to potentially change the this context when you need to pass
-// an argument down to the code.
-
-// .bind does not invoke the function. It returns a bound function with a few differences.
-// Context has already been changed and can be used later or multiple times.
-// Arguments can be applied ahead of time, but only likely to be done if you have
-// a single argument that you expect to reuse.
-const bindFunction = myFunction.bind(myObject, 'AbC', 'dEf');
-
-// Invoke the function.
-bindFunction();
-
-// Arguments can be supplied later as well.
-// Changing the arguments with each function call is more practical.
-const bindFunction2 = myFunction.bind(myObject);
-bindFunction2('aBc', 'DeF');
+const myInstance = new MyClass();
+myInstance.myMethod();
