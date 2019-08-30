@@ -6,9 +6,32 @@ interface Person {
   age: number;
 }
 
-interface ReadonlyPerson {
-  name: string;
-  age: number;
+// We may only need to pass in one property, but we need it to conform to a particular
+// object. We have to maintain 2 interfaces.
+// interface PartialPerson {
+//     name?: string;
+//     age?: number;
+// }
+
+// function updatePerson(person: Person, prop: PartialPerson) {
+// spread existing person and existing prop.
+//     return {...person, ...prop}
+// }
+
+// Type of my partial accepts generic T, then supply value.
+type MyPartial<T> = {
+  //  P for property in keyof T, then TS infers value of P.
+  // Because we are creating a partial we add the ? to indicate optional values.
+  [P in keyof T]?: T[P];
+};
+
+// We must supply type of MyPartial with our interface Person.
+// From here we only have one interface that would ever need adjusting.
+// Of course this is built into TS and we can just use type of Partial
+// supplied with our interface.
+function updatePerson(person: Person, prop: MyPartial<Person>) {
+  // spread existing person and existing prop.
+  return { ...person, ...prop };
 }
 
 const person: Person = {
@@ -16,37 +39,6 @@ const person: Person = {
   age: 27
 };
 
-// This is allowed because it is only mutating the value.
-// person.name = 'ABC';
+// Call update person, pass in person object, followed by key we want to pass in.
 
-// function freezePerson(person: Person): ReadonlyPerson {
-//     return Object.freeze(person);
-//     // This returns a readonly version of a person.
-//     // Typescript infers Readonly<Person> when .freeze is highlighted.
-// }
-
-// We can now call the function and pass in the person from above.
-// ReadonlyPerson type is passed to the const here. If : ReadonlyPerson was not
-// the function type expectation in the function above then TS would infer
-// that newperson = Readonly<Person>, so we would not need the typing on the
-// function or even the ReadonlyPerson interface.
-// const newPerson = freezePerson(person);
-
-// We can take mapped types a step further and use generics so the function can be
-// used for more than person objects. Now any object can be passed into it and you
-// will have a readonly version of that object returned.
-function freeze<T>(obj: T): Readonly<T> {
-  return Object.freeze(obj);
-}
-
-// TS now infers that the person will be a readonly of type person from the
-// original interface from the object.
-const newPerson = freeze(person);
-
-// We can write our own readonly type.
-// Each property can be marked as readonly so it is not mapped over.
-// [P] is a placeholder for each of the keys.
-// This will map over all properties as read only.
-type MyReadOnly<T> = {
-  readonly [P in keyof T]: T[P];
-};
+updatePerson(person, { name: 'abc' });
