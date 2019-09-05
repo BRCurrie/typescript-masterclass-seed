@@ -1,44 +1,52 @@
 // `npm start` or `yarn start` to see in browser.
 // `tsc` then `node dist/app.js` to see in terminal.
 
+// Age has been made optional.
 interface Person {
   name: string;
-  age: number;
+  age?: number;
 }
 
-// We may only need to pass in one property, but we need it to conform to a particular
-// object. We have to maintain 2 interfaces.
-// interface PartialPerson {
-//     name?: string;
-//     age?: number;
-// }
+// TS has a built in type of `Required` that matches the type definition below.
 
-// function updatePerson(person: Person, prop: PartialPerson) {
-// spread existing person and existing prop.
-//     return {...person, ...prop}
-// }
+// We can make a mapped type to make sure everything is required.
+type MyRequired<T> = {
+  // This shows a partial type.
+  // [P in keyof T]?: T[P]
+  // Syntax is different but the result is the same. We add a partial type
+  // [P in keyof T]+?: T[P]
+  // We can remove the partial type with the definition below.
+  [P in keyof T]-?: T[P];
 
-// Type of my partial accepts generic T, then supply value.
-type MyPartial<T> = {
-  //  P for property in keyof T, then TS infers value of P.
-  // Because we are creating a partial we add the ? to indicate optional values.
-  [P in keyof T]?: T[P];
+  // This also works with other features such as +readonly.
 };
 
-// We must supply type of MyPartial with our interface Person.
-// From here we only have one interface that would ever need adjusting.
-// Of course this is built into TS and we can just use type of Partial
-// supplied with our interface.
-function updatePerson(person: Person, prop: MyPartial<Person>) {
-  // spread existing person and existing prop.
-  return { ...person, ...prop };
+// We are trying to make everything in this function required.
+// function printAge(person: Person) {
+//   return `${person.name} is ${person.age}`;
+// }
+
+// We can now pass the generic type of person into our MyRequired Type.
+// This will now show an error in the const below.
+function printAge(person: MyRequired<Person>) {
+  return `${person.name} is ${person.age}`;
 }
 
+// This is valid because our age is optional.
+// If we did not have an optional age this const would show an error.
 const person: Person = {
-  name: 'Todd',
-  age: 27
+  name: 'Todd'
+  // We remove the optional property.
+  // Witout age the above function shows no errors.
+  // age: 27
 };
 
-// Call update person, pass in person object, followed by key we want to pass in.
+// We can now type check any person entered if we require a specific object.
+const person2: MyRequired<Person> = {
+  name: 'Ben',
+  age: 30
+};
 
-updatePerson(person, { name: 'abc' });
+// This does not show any errors with the first function.
+// This does appropriately show an error with our MyRequired type function.
+const age = printAge(person);
