@@ -5,58 +5,68 @@
 // inside a conditional.
 // When we use a typeguard we get type information iside that conditional block.
 
-// Typeof operator exists in JS.
-
-// demonstration
-function foo(bar: string | number) {
-  if (typeof bar === 'string') {
-    // string value.
-    // bar. gives string options.
-    return bar.toUpperCase();
-  }
-  // until something is done in the if statement above, this can still be of type string or number.
-  // once something is handle in the case of the string value aboue then bar will now be
-  // inferred as a number type.
-  bar;
-  // inferred as only a number now.
-  // we could use another if statement as a safety check instead.
-  // if (typeof bar === 'number') {
-  // return bar.toFixed(2);
-  // }
+// Demo of instaceof
+// This is sugar syntax essentially for the function below.
+class Foo {
+  bar() {}
 }
+// ES5 compiled from class and method above.
+// function Foo2() {}
+// Foo2.prototype.bar = function () {};
 
-// We need to create a typeguard for duration if it is a string or a number.
-// We might be dealing with different number formats.
+const bar = new Foo();
+
+// We test whether prototype property of constructor exists in another object.
+// the value of bar is an instance of Foo. Bar is an instance of Foo.
+// Foo.prototype is not creating a new instance we are just checking for one.
+console.log(Object.getPrototypeOf(bar) === Foo.prototype);
+// compile then run node and we log true;
+
+// We can use the instance of keyword to check as well.
+console.log(bar instanceof Foo);
+// console true
 
 class Song {
-  constructor(public title: string, public duration: string | number) {}
+  constructor(public title: string, public duration: number) {}
 }
 
-function getSongDuration(item: Song) {
-  if (typeof item.duration === 'string') {
-    return item.duration;
+// The playlist property will have an array of songs
+class Playlist {
+  constructor(public name: string, public songs: Song[]) {}
+}
+
+// Wether we pass it a song or playlist we want the name.
+// We are definitely returning a string from this function because title and name properties
+// are both of type string.
+function getItemName(item: Song | Playlist) {
+  // We might manually check if item has a title property with a type assertion as a Song
+  // if ((item as Song).title) {
+  //   // assumed it was a song
+  //   // return item. does not work here we need to add typing again.
+  //   return (item as Song).title;
+  // }
+  // Kind of long winded. We use instance of instead...
+  if (item instanceof Song) {
+    // TS will now infer that it is a Song and the properties there will be available.
+    return item.title;
   }
-  // Since its not a string it must be a number.
-  // return item.duration;
-
-  // instead of returning we will create a few constants.
-  // This will calculate from milliseconds to a more legible duration.
-  const { duration } = item;
-  const minutes = Math.floor(duration / 60000);
-  const seconds = (duration / 1000) % 60;
-  return `${minutes}:${seconds}`;
+  // Manual check requires `as` here too.
+  // // return (item as Playlist).name;
+  // But with instanceof TS will now infer we must have a playlist
+  // playlist properties will now be available.
+  return item.name;
 }
 
-const songDurationFromString = getSongDuration(
-  new Song('Wonderful Wonderful', '05:31')
-);
-console.log(songDurationFromString);
+// We invoke our function and pass in a new song title and  duration.
+const songName = getItemName(new Song('Wonderful Wonderful', 300000));
+// Console long the value of the songName.
+console.log('Song name:', songName);
+// expect Wonderful Wonderful
 
-const songDurationFromMS = getSongDuration(
-  new Song('Wonderful Wonderful', 330000)
+// We invoke our function and pass in a playlist with a playlist name and array of songs.
+const playlistName = getItemName(
+  new Playlist('The Best Songs', [new Song('The Man', 300000)])
 );
-console.log(songDurationFromMS);
-
-// After compiling and running we Expect 05:31 to be returned from the String function.
-// Followed by the calculated duration from the number as 5:30.
-// We would need to add logic to add a leading 0 as needed.
+// Console log the name of the playlist.
+console.log('Playlist name:', playlistName);
+// expect The Best Songs
