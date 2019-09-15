@@ -8,30 +8,34 @@
 // In a scenario where you would want to break something down into a reusable function
 // you lose the type inference if it is not declared.
 
+// Does the window object have a property called localStorage.
+// window.localStorage checks the value.
+const exists = 'localStorage' in window;
+
+// foo has a literal type of bar.
+const foo = 'bar';
+// const foo: string = 'bar'; has a type of string and the value is bar.
+
 class Song {
+  kind: 'song';
   constructor(public title: string, public duration: number) {}
 }
 
 class Playlist {
+  kind: 'playlist';
   constructor(public name: string, public songs: Song[]) {}
 }
 
-// Does not work at compile time. currently returns boolean of existance of instance.
-// item is Song is added here. When it evaluates to true we are returning Type information for Song.
 function isSong(item: any): item is Song {
-  return item instanceof Song;
-  // Can only use the is syntax when testing something like a boolean.
-  // return {}; would not work.
+  // Check if title exists in item.
+  // If it returns true it is a Song and is typed appropriately.
+  return 'title' in item;
 }
 
 function getItemName(item: Song | Playlist) {
-  // instanceof typeguard example
-  // if (item instanceof Song) {
-  //   return item.title;
-  // }
-  // return item.name;
-
-  if (isSong(item)) {
+  // if (isSong(item)) {
+  // this recieves typing from the string literal from the classes above.
+  if (item.kind === 'song') {
     return item.title;
   }
   return item.name;
