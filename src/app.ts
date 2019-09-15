@@ -1,52 +1,51 @@
 // `npm start` or `yarn start` to see in browser.
 // `tsc` then `node dist/app.js` to see in terminal.
 
-// Typeguard is a way that we can get type information after making a check
-// inside a conditional.
-// When we use a typeguard we get type information iside that conditional block.
+// Intersection Types
+// Describes the fact that we can combine multiple types together.
 
-// In a scenario where you would want to break something down into a reusable function
-// you lose the type inference if it is not declared.
-
-// Does the window object have a property called localStorage.
-// window.localStorage checks the value.
-const exists = 'localStorage' in window;
-
-// foo has a literal type of bar.
-const foo = 'bar';
-// const foo: string = 'bar'; has a type of string and the value is bar.
-
-class Song {
-  kind: 'song';
-  constructor(public title: string, public duration: number) {}
+interface Order {
+  id: string;
+  amount: number;
+  currency: string;
 }
 
-class Playlist {
-  kind: 'playlist';
-  constructor(public name: string, public songs: Song[]) {}
+// We do not want to extend the interfaces.
+interface Stripe {
+  card: string;
+  cvc: string;
 }
 
-function isSong(item: any): item is Song {
-  // Check if title exists in item.
-  // If it returns true it is a Song and is typed appropriately.
-  return 'title' in item;
+interface Paypal {
+  email: string;
 }
 
-function getItemName(item: Song | Playlist) {
-  // if (isSong(item)) {
-  // this recieves typing from the string literal from the classes above.
-  if (item.kind === 'song') {
-    return item.title;
-  }
-  return item.name;
-}
+// Every Order will need to be paid either with a card or through Paypal.
+// We will join those types using intersections.
+type CheckoutCard = Order & Stripe;
+type CheckoutPayPal = Order & Paypal;
+// You can create intersections inline as well.
+type CheckoutABC = Order & { name: string };
 
-const songName = getItemName(new Song('Wonderful Wonderful', 300000));
+const order: Order = {
+  id: 'xj28s',
+  amount: 100,
+  currency: 'USD'
+};
 
-console.log('Song name:', songName);
+// We want to merge the order object with another one.
+const orderCard: CheckoutCard = {
+  // We spread the object from order into the const and add our card and cvc info.
+  ...order,
+  card: '1000 2000 3000 4000',
+  cvc: '123'
+};
 
-const playlistName = getItemName(
-  new Playlist('The Best Songs', [new Song('The Man', 300000)])
-);
+const orderPayPal: CheckoutPayPal = {
+  ...order,
+  email: 'abc@def.com'
+};
 
-console.log('Playlist name:', playlistName);
+// An older method of doing this.
+// This infers that assigned: CheckoutCard. It spreads order and orderCard into a new object.
+const assigned = Object.assign({}, order, orderCard);
