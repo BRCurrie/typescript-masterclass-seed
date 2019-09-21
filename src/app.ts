@@ -1,8 +1,7 @@
 // `npm start` or `yarn start` to see in browser.
 // `tsc` then `node dist/app.js` to see in terminal.
 
-// Intersection Types
-// Describes the fact that we can combine multiple types together.
+// Discriminated (Tagged) Union Types
 
 interface Order {
   id: string;
@@ -10,22 +9,21 @@ interface Order {
   currency: string;
 }
 
-// We do not want to extend the interfaces.
 interface Stripe {
+  // We add a string literal type to discriminate between the two types below.
+  type: 'stripe';
   card: string;
   cvc: string;
 }
 
 interface Paypal {
+  // string literal added for discrimination.
+  type: 'paypal';
   email: string;
 }
 
-// Every Order will need to be paid either with a card or through Paypal.
-// We will join those types using intersections.
 type CheckoutCard = Order & Stripe;
 type CheckoutPayPal = Order & Paypal;
-// You can create intersections inline as well.
-type CheckoutABC = Order & { name: string };
 
 const order: Order = {
   id: 'xj28s',
@@ -33,19 +31,33 @@ const order: Order = {
   currency: 'USD'
 };
 
-// We want to merge the order object with another one.
 const orderCard: CheckoutCard = {
-  // We spread the object from order into the const and add our card and cvc info.
   ...order,
+  // We need the string literal type added here too.
+  type: 'stripe',
   card: '1000 2000 3000 4000',
   cvc: '123'
 };
 
 const orderPayPal: CheckoutPayPal = {
   ...order,
+  // Again.
+  type: 'paypal',
   email: 'abc@def.com'
 };
 
-// An older method of doing this.
-// This infers that assigned: CheckoutCard. It spreads order and orderCard into a new object.
-const assigned = Object.assign({}, order, orderCard);
+// We need to discriminate. So we create a union type where we can check the difference
+// between the two types.
+type Payload = CheckoutCard | CheckoutPayPal;
+
+// We want to detect what the customer is using, and apply that appropriately.
+function checkout(payload: Payload) {
+  // Now we can discriminate based on type information added to the above interfaces.
+  if (payload.type === 'stripe') {
+    // TS will now infer type and can be used in the function below with payload properties
+    console.log(payload.card, payload.cvc);
+  }
+  if (payload.type === 'paypal') {
+    console.log(payload.email);
+  }
+}
