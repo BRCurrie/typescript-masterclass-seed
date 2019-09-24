@@ -1,63 +1,38 @@
 // `npm start` or `yarn start` to see in browser.
 // `tsc` then `node dist/app.js` to see in terminal.
 
-// Discriminated (Tagged) Union Types
+// Interfaces vs Classes
 
-interface Order {
-  id: string;
-  amount: number;
-  currency: string;
+// Class is a blueprint where we can create objects that share the same info, properties, and methods.
+// Class can contain implementation details.
+
+// Interface is a group of info that describe an object.
+
+// Neither provide implementation or initialization.
+
+// Both options provide type checking, but only class contains implementation details.
+// This is pretty much the determining factor for which to use.
+
+interface Artist {
+  name: string;
 }
 
-interface Stripe {
-  // We add a string literal type to discriminate between the two types below.
-  type: 'stripe';
-  card: string;
-  cvc: string;
+// We implement the interface on the class for type checking.
+class ArtistCreator {
+  constructor(public name: string) {}
 }
 
-interface Paypal {
-  // string literal added for discrimination.
-  type: 'paypal';
-  email: string;
+function artistFactory({ name }: Artist) {
+  // We would expect a returned id from say a backend based on the name argument provided.
+  // The name is strictly type checked, and that is all.
+  return { id: 101, name };
 }
 
-type CheckoutCard = Order & Stripe;
-type CheckoutPayPal = Order & Paypal;
-
-const order: Order = {
-  id: 'xj28s',
-  amount: 100,
-  currency: 'USD'
-};
-
-const orderCard: CheckoutCard = {
-  ...order,
-  // We need the string literal type added here too.
-  type: 'stripe',
-  card: '1000 2000 3000 4000',
-  cvc: '123'
-};
-
-const orderPayPal: CheckoutPayPal = {
-  ...order,
-  // Again.
-  type: 'paypal',
-  email: 'abc@def.com'
-};
-
-// We need to discriminate. So we create a union type where we can check the difference
-// between the two types.
-type Payload = CheckoutCard | CheckoutPayPal;
-
-// We want to detect what the customer is using, and apply that appropriately.
-function checkout(payload: Payload) {
-  // Now we can discriminate based on type information added to the above interfaces.
-  if (payload.type === 'stripe') {
-    // TS will now infer type and can be used in the function below with payload properties
-    console.log(payload.card, payload.cvc);
-  }
-  if (payload.type === 'paypal') {
-    console.log(payload.email);
-  }
+function ArtistFactoryClass({ name }: ArtistCreator) {
+  // provides implementation details.
+  // This creates a new instance and can only be done with classes.
+  return new ArtistCreator(name);
 }
+
+// When we call the functions we need to supply the name argument.
+ArtistFactoryClass({ name: 'Todd' });
