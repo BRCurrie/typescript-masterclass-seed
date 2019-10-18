@@ -1,47 +1,32 @@
 // `npm start` or `yarn start` to see in browser.
 // `tsc` then `node dist/app.js` to see in terminal.
 
-class Pizza {
-  constructor(private name: string, private price: number) {}
-}
+// Function Overloads
+// Utility functions. Pure functions that typically return a different data structure or
+// data set.
 
-// It is common to create a list and add or retrive items from it.
+// The function overload does not compile into JS differently. It is only there for
+// typechecking purposes.
 
-// We supply a type variable to List so we can pass in a type variable.
-class List<T> {
-  // private list: any[];
-  // We can now pass in the variable array type without specifying any.
-  private list: T[];
+// This is a type declaration.
+// This code would not get compiled down to JS.
+function reverse(str: string): string;
+// We use a generic type to pass the type checking along to the function calls below.
+function reverse<T>(arr: T[]): T[];
 
-  // addItem to a list without returning anything.
-  // This is a common pattern that we would use.
-  addItem(item: T): void {
-    this.list.push(item);
+// We declare to TS that we will feed the function different parameters that will give it
+// a different result.
+// This is the complete implementation function.
+function reverse<T>(stringOrArray: string | any[]): string | any[] {
+  if (typeof stringOrArray === 'string') {
+    return stringOrArray
+      .split('')
+      .reverse()
+      .join('');
   }
-
-  // We expect this to return an array.
-  getList(): T[] {
-    return this.list;
-  }
+  // We slice the array to create a copy then reverse the new array.
+  return stringOrArray.slice().reverse();
 }
 
-// We can add the Pizza array typing to the list and the information will be passed down.
-const list = new List<Pizza>();
-
-list.addItem(new Pizza('Pepperoni', 15));
-// We might accidentally add another class. We can automatically add to this list and it is
-// quite error prone.
-// list.addItem(new Coupon());
-
-const pizzas = list.getList();
-
-// Another example using our generic funtion.
-
-class Coupon {
-  constructor(private name: string) {}
-}
-
-// We can define the value at the point it is called and use it throughout the application.
-const anotherList = new List<Coupon>();
-
-anotherList.addItem(new Coupon('PIZZA25'));
+reverse('Pepperoni');
+reverse(['bacon', 'pepperoni', 'chili', 'mushrooms']);
